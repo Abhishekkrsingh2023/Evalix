@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animated gradient border */
+.gradient-border {
+  position: relative;
+  background: linear-gradient(#0f172a, #0f172a) padding-box,
+              linear-gradient(135deg, #818cf8, #c084fc, #f472b6) border-box;
+  border: 1px solid transparent;
+  border-radius: 12px;
+}
+
+/* Score badge */
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1.125rem;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+}
+
+/* Input focus ring */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  ring: 2px;
+}
+
+/* Skeleton animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* Pulse ring for scan button */
+@keyframes ping-slow {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.15); }
+}
+.ping-slow { animation: ping-slow 2s ease-in-out infinite; }
+
+/* Status indicator dot */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Smooth page transitions */
+main {
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
