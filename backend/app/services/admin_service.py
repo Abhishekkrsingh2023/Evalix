@@ -152,14 +152,16 @@ async def get_dashboard_stats(db: AsyncSession) -> DashboardStats:
     )
 
 
-async def get_leaderboard(db: AsyncSession) -> LeaderboardResponse:
+async def get_leaderboard(
+    db: AsyncSession, round_filter: Optional[str] = None
+) -> LeaderboardResponse:
     """
     Build the final leaderboard.
     Algorithm:
       - For each team, collect all Round 1 scores across all judges → average
       - Collect all Round 2 scores → average  
       - Overall = average of ALL submitted scores (rounds 1 and 2)
-      - Sort by overall_avg descending
+      - Sort by round_1_avg, round_2_avg, or overall_avg based on round_filter
     """
     teams_result = await db.execute(select(Team).order_by(Team.team_id))
     teams = list(teams_result.scalars().all())
@@ -216,8 +218,14 @@ async def get_leaderboard(db: AsyncSession) -> LeaderboardResponse:
             )
         )
 
-    # Sort by overall_avg descending (None goes last)
-    entries.sort(key=lambda e: e.overall_avg if e.overall_avg is not None else -1, reverse=True)
+    # Sort based on round_filter (None goes last)
+    if round_filter == "1":
+        entries.sort(key=lambda e: e.round_1_avg if e.round_1_avg is not None else -1, reverse=True)
+    elif round_filter == "2":
+        entries.sort(key=lambda e: e.round_2_avg if e.round_2_avg is not None else -1, reverse=True)
+    else:
+        entries.sort(key=lambda e: e.overall_avg if e.overall_avg is not None else -1, reverse=True)
+
     for i, entry in enumerate(entries, start=1):
         entry.rank = i
 

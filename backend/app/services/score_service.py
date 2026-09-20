@@ -65,6 +65,21 @@ async def submit_score(
             detail=f"You have already submitted scores for {team.team_id} Round {data.round}. Scores are immutable.",
         )
 
+    # Enforce sequential round scoring: Round 1 (Day 1) must be submitted before Round 2 (Day 2)
+    if data.round == 2:
+        r1_score = await db.execute(
+            select(Score).where(
+                Score.judge_id == judge.id,
+                Score.team_id == team.id,
+                Score.round == 1,
+            )
+        )
+        if not r1_score.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"You must submit Round 1 (Day 1) scores before scoring Round 2 (Day 2) for {team.team_id}.",
+            )
+
     # Compute total server-side (never trust frontend)
     total = data.qa_score + data.innovation_score + data.execution_score
 

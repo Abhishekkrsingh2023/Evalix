@@ -76,3 +76,28 @@ async def test_admin_dashboard(client: AsyncClient, admin_user: User):
     data = response.json()
     assert "total_teams" in data
     assert "total_judges" in data
+
+
+@pytest.mark.asyncio
+async def test_admin_leaderboard_with_round_filter(client: AsyncClient, admin_user: User):
+    cookies = await get_auth_cookies(client, "admin@test.com", "adminpass123")
+    # Test default
+    res_default = await client.get("/api/v1/admin/leaderboard", cookies=cookies)
+    assert res_default.status_code == 200
+    assert "entries" in res_default.json()
+
+    # Test round 1
+    res_r1 = await client.get("/api/v1/admin/leaderboard?round=1", cookies=cookies)
+    assert res_r1.status_code == 200
+    assert "entries" in res_r1.json()
+
+    # Test round 2
+    res_r2 = await client.get("/api/v1/admin/leaderboard?round=2", cookies=cookies)
+    assert res_r2.status_code == 200
+    assert "entries" in res_r2.json()
+
+    # Test final
+    res_final = await client.get("/api/v1/admin/leaderboard?round=final", cookies=cookies)
+    assert res_final.status_code == 200
+    assert "entries" in res_final.json()
+
