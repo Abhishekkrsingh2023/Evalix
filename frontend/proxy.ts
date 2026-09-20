@@ -1,30 +1,26 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes accessible without auth
-const PUBLIC_ROUTES = ['/login'];
-
+/**
+ * Next.js proxy (edge middleware).
+ *
+ * NOTE: The access_token cookie is HttpOnly and set by the backend API
+ * (a different origin in dev), so this proxy typically cannot read it.
+ * All authentication & role-based guards are handled client-side by
+ * the layout components (admin/layout.tsx, judge/layout.tsx) which call
+ * /auth/me with credentials.  The proxy only handles lightweight routing
+ * concerns that don't depend on auth state.
+ */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get('access_token')?.value;
 
-  // Allow public routes
-  if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
-    // If already authenticated, redirect to judge dashboard (layouts handle role-based routing)
-    if (accessToken) {
-      return NextResponse.redirect(new URL('/judge', request.url));
-    }
-    return NextResponse.next();
+  // If user is on /login but already has a valid cookie (e.g. same-origin
+  // deployment), redirect them away from the login page.
+  if (pathname.startsWith('/login') && accessToken) {
+    return NextResponse.redirect(new URL('/judge', request.url));
   }
 
-  // Require auth for everything else
-  if (!accessToken) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Note: Role-based redirect is handled in layouts/pages via the /api/v1/auth/me check
   return NextResponse.next();
 }
 
