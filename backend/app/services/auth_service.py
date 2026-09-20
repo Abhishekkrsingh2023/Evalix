@@ -27,12 +27,15 @@ def _hash_token(token: str) -> str:
 def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
     """Set HttpOnly auth cookies on the response."""
     secure = settings.is_production
+    # In production (cross-site between Vercel and backend), SameSite must be 'none' and Secure must be True.
+    # In local development (HTTP), SameSite is 'lax' and Secure is False.
+    samesite = "none" if settings.is_production else "lax"
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/",
     )
@@ -41,7 +44,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
         value=refresh_token,
         httponly=True,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
         path="/api/v1/auth",
     )
@@ -49,8 +52,10 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
 
 def _clear_auth_cookies(response: Response) -> None:
     """Clear auth cookies."""
-    response.delete_cookie("access_token", path="/")
-    response.delete_cookie("refresh_token", path="/api/v1/auth")
+    secure = settings.is_production
+    samesite = "none" if settings.is_production else "lax"
+    response.delete_cookie("access_token", path="/", secure=secure, samesite=samesite, httponly=True)
+    response.delete_cookie("refresh_token", path="/api/v1/auth", secure=secure, samesite=samesite, httponly=True)
 
 
 async def login(
