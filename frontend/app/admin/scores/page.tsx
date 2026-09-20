@@ -1,43 +1,111 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { adminApi } from '@/lib/api';
-import { LeaderboardResponse } from '@/types';
+import { LeaderboardResponse, TeamLeaderboardEntry } from '@/types';
 import { Card, Skeleton } from '@/components/ui';
 import { getStatusBadge } from '@/lib/utils';
-import { Trophy, Medal, Crown } from 'lucide-react';
+import {
+  Trophy,
+  Medal,
+  Crown,
+  Radio,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Layers,
+  Sparkles,
+} from 'lucide-react';
 import Link from 'next/link';
 
+type LeaderboardTab = '1' | '2' | 'final';
+
 function RankIcon({ rank }: { rank: number }) {
-  if (rank === 1) return <Crown className="w-5 h-5 text-yellow-400" />;
-  if (rank === 2) return <Medal className="w-5 h-5 text-slate-300" />;
-  if (rank === 3) return <Medal className="w-5 h-5 text-amber-600" />;
+  if (rank === 1) return <Crown className="w-5 h-5 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]" />;
+  if (rank === 2) return <Medal className="w-5 h-5 text-slate-300 drop-shadow-[0_0_6px_rgba(203,213,225,0.4)]" />;
+  if (rank === 3) return <Medal className="w-5 h-5 text-amber-600 drop-shadow-[0_0_6px_rgba(217,119,6,0.4)]" />;
   return <span className="text-slate-400 font-bold text-sm">#{rank}</span>;
 }
 
 export default function AdminScoresPage() {
+  const [isLive, setIsLive] = useState(false);
+  const [activeTab, setActiveTab] = useState<LeaderboardTab>('final');
   const [data, setData] = useState<LeaderboardResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
-  useEffect(() => {
-    let ignore = false;
-    adminApi
-      .leaderboard()
-      .then((r) => {
-        if (!ignore) setData(r.data);
-      })
-      .finally(() => {
-        if (!ignore) setLoading(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
+  const fetchLeaderboard = useCallback(async (tab: LeaderboardTab) => {
+    try {
+      setLoading(true);
+      const res = await adminApi.leaderboard(tab);
+      setData(res.data);
+      setLastRefreshed(new Date());
+    } catch (err) {
+      console.error('Failed to load leaderboard:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const refresh = () => {
-    setLoading(true);
-    adminApi.leaderboard().then((r) => setData(r.data)).finally(() => setLoading(false));
+  // Fetch only when live is enabled or tab changes while live
+  useEffect(() => {
+    if (isLive) {
+      fetchLeaderboard(activeTab);
+    }
+  }, [isLive, activeTab, fetchLeaderboard]);
+
+  // Polling auto-refresh when live is active
+  useEffect(() => {
+    if (!isLive || !autoRefresh) return;
+    const interval = setInterval(() => {
+      adminApi
+        .leaderboard(activeTab)
+        .then((r) => {
+          setData(r.data);
+          setLastRefreshed(new Date());
+        })
+        .catch((err) => console.error('Auto refresh error:', err));
+    }, 12000);
+
+    return () => clearInterval(interval);
+  }, [isLive, autoRefresh, activeTab]);
+
+  // Sort and re-rank entries for client view
+  const displayEntries: TeamLeaderboardEntry[] = data
+    ? [...data.entries].sort((a, b) => {
+        if (activeTab === '1') {
+          const scoreA = a.round_1_avg ?? -1;
+          const scoreB = b.round_1_avg ?? -1;
+          return scoreB - scoreA;
+        } else if (activeTab === '2') {
+          const scoreA = a.round_2_avg ?? -1;
+          const scoreB = b.round_2_avg ?? -1;
+          return scoreB - scoreA;
+        } else {
+          const scoreA = a.overall_avg ?? -1;
+          const scoreB = b.overall_avg ?? -1;
+          return scoreB - scoreA;
+        }
+      }).map((entry, idx) => ({ ...entry, rank: idx + 1 }))
+    : [];
+
+  const top3 = displayEntries.filter((e) => {
+    if (activeTab === '1') return e.round_1_avg !== null && e.rank <= 3;
+    if (activeTab === '2') return e.round_2_avg !== null && e.rank <= 3;
+    return e.overall_avg !== null && e.rank <= 3;
+  });
+
+  const getActiveScore = (entry: TeamLeaderboardEntry) => {
+    if (activeTab === '1') return entry.round_1_avg;
+    if (activeTab === '2') return entry.round_2_avg;
+    return entry.overall_avg;
+  };
+
+  const getTabTitle = () => {
+    if (activeTab === '1') return 'Round 1 (Day 1)';
+    if (activeTab === '2') return 'Round 2 (Day 2)';
+    return 'Final Score';
   };
 
   return (
@@ -74,7 +142,7 @@ export default function AdminScoresPage() {
             <p className="text-2xl sm:text-3xl font-bold text-violet-400 mt-1">{data.total_judges}</p>
           </Card>
         </div>
-      )}
+      </div>
 
       {/* Leaderboard Card Container */}
       <Card className="overflow-hidden p-0 min-w-0 w-full">
@@ -122,7 +190,191 @@ export default function AdminScoresPage() {
                   </div>
                 ))}
               </div>
+            ) : displayEntries.length === 0 ? (
+              <div className="text-center py-16">
+                <Trophy className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-400">No scores submitted yet</p>
+              </div>
+            ) : (
+              <>
+                {/* Top 3 Podium for Selected View */}
+                {top3.length > 0 && (
+                  <div className="p-5 border-b border-slate-800 bg-gradient-to-b from-slate-800/40 to-transparent">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <Crown className="w-4 h-4 text-yellow-400" />
+                        Top Performers · {getTabTitle()}
+                      </h3>
+                      <span className="text-xs text-slate-500">
+                        Ranked by {getTabTitle()}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {top3.map((entry) => {
+                        const scoreVal = getActiveScore(entry);
+                        return (
+                          <div
+                            key={entry.team_id}
+                            className={`text-center p-4 rounded-xl border transition-all ${
+                              entry.rank === 1
+                                ? 'border-yellow-500/40 bg-yellow-500/10 shadow-lg shadow-yellow-500/5'
+                                : entry.rank === 2
+                                ? 'border-slate-400/40 bg-slate-400/10'
+                                : 'border-amber-600/40 bg-amber-600/10'
+                            }`}
+                          >
+                            <div className="flex justify-center mb-1">
+                              <RankIcon rank={entry.rank} />
+                            </div>
+                            <p className="font-semibold text-slate-100 text-sm mt-1 truncate">
+                              {entry.team_name}
+                            </p>
+                            <p className="text-xs text-slate-500">{entry.team_id}</p>
+                            <div className="mt-2">
+                              <span
+                                className={`text-2xl font-black ${
+                                  entry.rank === 1
+                                    ? 'text-yellow-400'
+                                    : entry.rank === 2
+                                    ? 'text-slate-200'
+                                    : 'text-amber-500'
+                                }`}
+                              >
+                                {scoreVal !== null && scoreVal !== undefined
+                                  ? scoreVal.toFixed(1)
+                                  : '—'}
+                              </span>
+                              <span className="text-slate-500 text-xs ml-1">
+                                {activeTab === 'final' ? 'overall avg' : '/30 avg'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Full Data Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-800 bg-slate-800/30">
+                        <th className="px-4 py-3.5 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider w-16">
+                          Rank
+                        </th>
+                        <th className="px-4 py-3.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                          Team
+                        </th>
+                        <th
+                          className={`px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                            activeTab === '1'
+                              ? 'text-violet-400 bg-violet-500/10 font-bold'
+                              : 'text-slate-400'
+                          }`}
+                        >
+                          Round 1 (Day 1)
+                        </th>
+                        <th
+                          className={`px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                            activeTab === '2'
+                              ? 'text-violet-400 bg-violet-500/10 font-bold'
+                              : 'text-slate-400'
+                          }`}
+                        >
+                          Round 2 (Day 2)
+                        </th>
+                        <th
+                          className={`px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                            activeTab === 'final'
+                              ? 'text-amber-400 bg-amber-500/10 font-bold'
+                              : 'text-slate-400'
+                          }`}
+                        >
+                          Final Score
+                        </th>
+                        <th className="px-4 py-3.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                          Judges
+                        </th>
+                        <th className="px-4 py-3.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                          Status
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60">
+                      {displayEntries.map((entry) => (
+                        <tr
+                          key={entry.team_id}
+                          className="hover:bg-slate-800/40 transition-colors"
+                        >
+                          <td className="px-4 py-3.5 text-center w-16">
+                            <div className="flex items-center justify-center">
+                              <RankIcon rank={entry.rank} />
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <Link href={`/admin/teams/${entry.team_id}`} className="group">
+                              <p className="font-semibold text-slate-200 group-hover:text-violet-400 transition-colors">
+                                {entry.team_name}
+                              </p>
+                              <p className="text-slate-500 text-xs">{entry.team_id} · {entry.leader_name}</p>
+                            </Link>
+                          </td>
+                          <td
+                            className={`px-4 py-3.5 font-medium ${
+                              activeTab === '1'
+                                ? 'bg-violet-500/5 text-violet-300 font-bold'
+                                : 'text-slate-300'
+                            }`}
+                          >
+                            {entry.round_1_avg !== null ? `${entry.round_1_avg.toFixed(1)}/30` : '—'}
+                          </td>
+                          <td
+                            className={`px-4 py-3.5 font-medium ${
+                              activeTab === '2'
+                                ? 'bg-violet-500/5 text-violet-300 font-bold'
+                                : 'text-slate-300'
+                            }`}
+                          >
+                            {entry.round_2_avg !== null ? `${entry.round_2_avg.toFixed(1)}/30` : '—'}
+                          </td>
+                          <td
+                            className={`px-4 py-3.5 ${
+                              activeTab === 'final' ? 'bg-amber-500/5' : ''
+                            }`}
+                          >
+                            <span
+                              className={`text-lg font-bold ${
+                                activeTab === 'final' ? 'text-amber-400' : 'text-slate-200'
+                              }`}
+                            >
+                              {entry.overall_avg !== null ? entry.overall_avg.toFixed(1) : '—'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3.5 text-slate-400 text-sm">
+                            {entry.judges_completed}
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-semibold border ${getStatusBadge(
+                                entry.status
+                              )}`}
+                            >
+                              {entry.status === 'complete'
+                                ? '✓ Complete'
+                                : entry.status === 'partial'
+                                ? '~ Partial'
+                                : '○ Pending'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
+          </Card>
 
             {/* Mobile Card List (visible on small screens < md) */}
             <div className="md:hidden divide-y divide-slate-800/60">

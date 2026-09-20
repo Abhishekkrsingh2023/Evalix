@@ -91,6 +91,14 @@ export default function ScoringPage() {
         if (!ignore) {
           setTeam(teamRes.data);
           const status = statusRes.data;
+
+          // Check if Round 2 is attempted without Round 1 completed
+          if (roundNum === 2 && !status.round_1.submitted) {
+            toast.error('You must submit Round 1 (Day 1) scores before scoring Round 2 (Day 2).');
+            router.push(`/judge/team/${teamId}`);
+            return;
+          }
+
           const roundStatus = roundNum === 1 ? status.round_1 : status.round_2;
           if (roundStatus.submitted) {
             toast.error('You have already submitted scores for this round.');
@@ -145,6 +153,8 @@ export default function ScoringPage() {
 
   if (!team) return null;
 
+  const roundName = roundNum === 1 ? 'Round 1 (Day 1)' : 'Round 2 (Day 2)';
+
   return (
     <div className="max-w-lg mx-auto space-y-5">
       {/* Back */}
@@ -160,7 +170,7 @@ export default function ScoringPage() {
       <div>
         <div className="flex items-center gap-2 mb-1">
           <Badge variant="info">{team.team_id}</Badge>
-          <Badge variant="submitted">Round {roundNum}</Badge>
+          <Badge variant="submitted">{roundName}</Badge>
         </div>
         <h1 className="text-2xl font-bold text-slate-100">{team.team_name}</h1>
         <p className="text-slate-400 text-sm">Leader: {team.leader_name}</p>
@@ -179,7 +189,7 @@ export default function ScoringPage() {
       <Card className="gradient-border">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-slate-400 text-sm">Round {roundNum} Total</p>
+            <p className="text-slate-400 text-sm">{roundName} Total</p>
             <p className="text-4xl font-bold text-slate-100 mt-1">
               {total}
               <span className="text-slate-500 text-xl font-normal">/30</span>
@@ -216,7 +226,7 @@ export default function ScoringPage() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Round</span>
-              <span className="text-slate-200 font-medium">Round {roundNum}</span>
+              <span className="text-slate-200 font-medium">{roundName}</span>
             </div>
             <div className="border-t border-slate-700/50 my-2" />
             <div className="flex justify-between text-sm">

@@ -67,6 +67,27 @@ async def test_judge_submits_round_1_again_rejected(
 
 
 @pytest.mark.asyncio
+async def test_judge_cannot_submit_round_2_before_round_1(
+    client: AsyncClient, judge_user: User, sample_team: Team
+):
+    """Judge cannot submit Round 2 score if Round 1 has not been submitted yet."""
+    cookies = await get_auth_cookies(client, "judge@test.com", "judgepass123")
+    response = await client.post(
+        "/api/v1/scores",
+        json={
+            "team_id": sample_team.team_id,
+            "round": 2,
+            "qa_score": 8,
+            "innovation_score": 8,
+            "execution_score": 8,
+        },
+        cookies=cookies,
+    )
+    assert response.status_code == 400
+    assert "Round 1" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
 async def test_judge_submits_round_2_after_round_1(
     client: AsyncClient, judge_user: User, sample_team: Team
 ):

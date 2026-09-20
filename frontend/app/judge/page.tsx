@@ -43,8 +43,8 @@ export default function JudgeDashboard() {
         ) : (
           <>
             <StatCard title="Teams Judged" value={uniqueTeams} icon={<Award className="w-6 h-6 text-white" />} color="from-violet-600 to-indigo-600" />
-            <StatCard title="Round 1 Done" value={round1Count} icon={<CheckCircle className="w-6 h-6 text-white" />} color="from-emerald-600 to-teal-600" />
-            <StatCard title="Round 2 Done" value={round2Count} icon={<CheckCircle className="w-6 h-6 text-white" />} color="from-blue-600 to-cyan-600" />
+            <StatCard title="Round 1 (Day 1)" value={round1Count} icon={<CheckCircle className="w-6 h-6 text-white" />} color="from-emerald-600 to-teal-600" />
+            <StatCard title="Round 2 (Day 2)" value={round2Count} icon={<CheckCircle className="w-6 h-6 text-white" />} color="from-blue-600 to-cyan-600" />
             <StatCard title="Total Scores" value={scores.length} icon={<Circle className="w-6 h-6 text-white" />} color="from-amber-600 to-orange-600" />
           </>
         )}
@@ -92,7 +92,9 @@ export default function JudgeDashboard() {
               <Link key={score.id} href={`/judge/team/${score.team_identifier}`}>
                 <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-colors">
                   <div className="flex items-center gap-3">
-                    <Badge variant="submitted">Round {score.round}</Badge>
+                    <Badge variant="submitted">
+                      {score.round === 1 ? 'Round 1 (Day 1)' : 'Round 2 (Day 2)'}
+                    </Badge>
                     <div>
                       <p className="font-medium text-slate-200">{score.team_name}</p>
                       <p className="text-xs text-slate-500">{score.team_identifier} · {formatDate(score.submitted_at)}</p>

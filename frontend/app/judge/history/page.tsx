@@ -75,10 +75,11 @@ export default function JudgeHistoryPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[r1, r2].map((score, idx) => {
+                      const roundLabel = idx === 0 ? 'Round 1 (Day 1)' : 'Round 2 (Day 2)';
                       if (!score) {
                         return (
                           <div key={idx} className="p-3 bg-slate-800/30 rounded-xl border border-slate-700/50">
-                            <p className="text-slate-500 text-sm font-medium mb-1">Round {idx + 1}</p>
+                            <p className="text-slate-500 text-sm font-medium mb-1">{roundLabel}</p>
                             <p className="text-slate-600 text-xs">Not submitted</p>
                           </div>
                         );
@@ -86,7 +87,7 @@ export default function JudgeHistoryPage() {
                       return (
                         <div key={score.id} className="p-3 bg-slate-800/50 rounded-xl border border-violet-500/20 space-y-2">
                           <div className="flex items-center justify-between">
-                            <Badge variant="submitted">Round {score.round}</Badge>
+                            <Badge variant="submitted">{roundLabel}</Badge>
                             <span className="text-violet-400 font-bold">{score.total_score}/30</span>
                           </div>
                           <div className="space-y-1.5 text-xs">

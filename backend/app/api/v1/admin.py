@@ -42,15 +42,16 @@ async def dashboard(
     summary="Final leaderboard / results",
 )
 async def leaderboard(
+    round: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(require_admin),
 ) -> LeaderboardResponse:
     """
-    Sorted leaderboard by overall average score.
+    Sorted leaderboard by overall average score or round (1, 2, final).
     Aggregation: average of all submitted scores per round, then combined.
     READ-ONLY — scores cannot be modified.
     """
-    return await admin_service.get_leaderboard(db)
+    return await admin_service.get_leaderboard(db, round_filter=round)
 
 
 # --- Team management ---

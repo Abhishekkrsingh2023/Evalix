@@ -135,7 +135,8 @@ export const scoresApi = {
 // ---- Admin ----
 export const adminApi = {
   dashboard: () => api.get('/admin/dashboard'),
-  leaderboard: () => api.get('/admin/leaderboard'),
+  leaderboard: (round?: string) =>
+    api.get('/admin/leaderboard', { params: round ? { round } : undefined }),
 
   // Teams
   createTeam: (data: { team_id: string; team_name: string; leader_name: string }) =>
