@@ -135,18 +135,6 @@ bun dev
 
 ---
 
-## 🔑 Default Credentials
-
-When running `seed.py`, the default administrator credentials are created from your `.env` configuration:
-
-| Role | Default Email | Default Password |
-|---|---|---|
-| **Super Admin** | `admin@innov8.in` *(or configured in `.env`)* | `admin@bbit` *(or configured in `.env`)* |
-
-> [!WARNING]
-> Always update `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `JWT_SECRET_KEY` in `backend/.env` before deploying to production.
-
----
 
 ## 🔒 Score Immutability & Security
 
