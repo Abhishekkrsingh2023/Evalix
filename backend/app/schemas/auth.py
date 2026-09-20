@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 from app.models.user import UserRole
 import uuid
@@ -21,9 +22,12 @@ class UserResponse(BaseModel):
     role: UserRole
     is_active: bool
     created_at: datetime
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    token_type: str = "bearer"
 
     model_config = {"from_attributes": True}
 
 
 class RefreshRequest(BaseModel):
-    refresh_token: str
+    refresh_token: Optional[str] = None

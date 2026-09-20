@@ -2,6 +2,7 @@ import uuid
 from typing import Optional
 
 from fastapi import Cookie, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,13 +11,16 @@ from app.core.security import decode_token
 from app.dependencies.db import get_db
 from app.models.user import User, UserRole
 
+bearer_scheme = HTTPBearer(auto_error=False)
+
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db),
     access_token: Optional[str] = Cookie(default=None),
+    bearer_auth: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
 ) -> User:
     """
-    Extract and validate the current user from the access token cookie.
+    Extract and validate the current user from the access token cookie or Authorization header.
     Raises 401 if token is missing/invalid, 403 if user is inactive.
     """
     credentials_exception = HTTPException(
@@ -24,11 +28,12 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    if not access_token:
+    token = access_token or (bearer_auth.credentials if bearer_auth else None)
+    if not token:
         raise credentials_exception
 
     try:
-        payload = decode_token(access_token)
+        payload = decode_token(token)
         user_id_str: Optional[str] = payload.get("sub")
         token_type: Optional[str] = payload.get("type")
         if not user_id_str or token_type != "access":

@@ -11,6 +11,9 @@ export interface User {
   role: UserRole;
   is_active: boolean;
   created_at: string;
+  access_token?: string;
+  refresh_token?: string;
+  token_type?: string;
 }
 
 export interface Team {
