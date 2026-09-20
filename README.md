@@ -1,51 +1,102 @@
-# INNOV8 3.0 — Hackathon Judging System
+<div align="center">
 
-A production-ready, secure, and responsive judging platform for the INNOV8 3.0 hackathon.
+# ⚡ Evalix
+
+**Next-Gen Hackathon Evaluation & Real-Time Judging Platform**
+
+A secure, high-performance, and mobile-friendly judging system built for modern hackathons and competitive developer events.
+
+<br/>
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js%2016-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React%2019-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python%203.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+
+<br/>
+
+[Key Features](#-key-features) • [Architecture](#-architecture) • [Tech Stack](#-tech-stack) • [Quick Start](#-quick-start) • [Security & Immutability](#-score-immutability--security) • [License](#-license)
+
+</div>
+
+---
+
+## 📖 Overview
+
+**Evalix** eliminates paper rubrics, chaotic spreadsheets, and evaluation tampering during hackathons. Designed with a mobile-first judging interface and a real-time admin nerve-center, Evalix allows organizers to manage hundreds of participants, deploy judges with QR scanners, and calculate live, audit-proof leaderboards with zero friction.
+
+---
+
+## ✨ Key Features
+
+- 📲 **QR Code Quick-Scan**: Judges scan team badges or table stands to instantly launch the team's scoring rubrics.
+- 🔒 **Multi-Layer Score Immutability**: Write-once architecture guarantees scores cannot be modified or overwritten once finalized.
+- 👥 **Role-Based Portals**:
+  - **Judges**: Mobile-optimized workflow, live round progress, criteria scoring, and personal submission history.
+  - **Super Admins**: Live participant rosters, judge credential lifecycle, round controls, and real-time aggregated leaderboards.
+- 🎯 **Multi-Criteria & Multi-Round Scoring**: Standardized scoring across rounds with automated average aggregation across all judges.
+- 🛡️ **Enterprise Security**: Argon2 password hashing, HttpOnly secure cookies, refresh token rotation, and strict API rate limiting.
+- ⚡ **Blazing Fast**: Powered by Next.js 16 App Router, FastAPI asynchronous I/O, and Bun + uv package managers.
 
 ---
 
 ## 🏗️ Architecture
 
-```
-Frontend (Next.js 16 + TypeScript + Tailwind CSS)
-        |  REST API (HttpOnly cookies, CORS)
-        ▼
-Backend (FastAPI + Python + asyncpg)
-        |  SQLAlchemy 2.x ORM
-        ▼
-PostgreSQL (with DB-level constraints)
+```text
+┌────────────────────────────────────────────────────────┐
+│               Frontend (Next.js 16 + React 19)         │
+│         Mobile-first UI • QR Scanner • Real-time State  │
+└───────────────────────────┬────────────────────────────┘
+                            │ REST API / HttpOnly Cookies
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│               Backend (FastAPI + Async Python)         │
+│          RBAC • Score Validation • Pydantic v2         │
+└───────────────────────────┬────────────────────────────┘
+                            │ SQLAlchemy 2.0 (asyncpg)
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│          PostgreSQL (Relational Persistence)           │
+│         Strict DB Constraints (UNIQUE judge/team/round)│
+└────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## 🛠️ Tech Stack
+
+| Layer | Technologies |
+|---|---|
+| **Frontend** | [Next.js 16](https://nextjs.org/) (App Router), [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS v4](https://tailwindcss.com/), [TanStack Query](https://tanstack.com/query), [Zustand](https://zustand-demo.pmnd.rs/), [Lucide React](https://lucide.dev/) |
+| **Backend** | [FastAPI](https://fastapi.tiangolo.com/), [Python 3.11+](https://python.org), [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (Async), [Alembic](https://alembic.sqlalchemy.org/), [Pydantic v2](https://docs.pydantic.dev/) |
+| **Database & Auth** | [PostgreSQL](https://www.postgresql.org/), [asyncpg](https://github.com/MagicStack/asyncpg), [Argon2](https://github.com/pwn-hash/argon2-cffi), [python-jose](https://github.com/mpdavis/python-jose) |
+| **Tooling & Runtimes** | [Bun](https://bun.sh/) (Frontend runtime/package manager), [uv](https://github.com/astral-sh/uv) (Extremely fast Python package manager) |
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-| Tool | Required Version |
-|------|-----------------|
-| Python | ≥ 3.11 |
-| uv | latest |
-| Node.js | ≥ 18 |
-| bun | latest |
-| PostgreSQL | ≥ 14 |
+- **Python** ≥ 3.11 & [uv](https://docs.astral.sh/uv/)
+- **Node.js** ≥ 18 & [Bun](https://bun.sh/)
+- **PostgreSQL** ≥ 14
 
-### 1. Clone & Configure
+### 1. Clone & Setup Environment
 
 ```bash
-git clone <repo>
+git clone https://github.com/Abhishekkrsingh2023/Evalix.git
 cd Evalix
 
-# Backend config
+# Configure Backend environment
 cp backend/.env.example backend/.env
-# Edit backend/.env and set:
-# - DATABASE_URL (your Postgres connection string)
-# - JWT_SECRET_KEY (long random secret)
-# - ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME
 
-# Frontend config
+# Configure Frontend environment
 cp frontend/.env.example frontend/.env.local
-# Set NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 ```
 
 ### 2. Backend Setup
@@ -53,21 +104,20 @@ cp frontend/.env.example frontend/.env.local
 ```bash
 cd backend
 
-# Install dependencies
+# Install dependencies with uv
 uv sync
 
-# Create database (replace credentials as needed)
-createdb innov8_judging
-
-# Run migrations
+# Run database migrations
 uv run alembic upgrade head
 
-# Seed initial admin
+# Seed initial super admin user
 uv run python seed.py
 
-# Start backend
+# Start development server
 uv run uvicorn app.main:app --reload --port 8000
 ```
+
+> **API Documentation**: Once running, visit [http://localhost:8000/docs](http://localhost:8000/docs) for the interactive OpenAPI/Swagger UI.
 
 ### 3. Frontend Setup
 
@@ -77,215 +127,68 @@ cd frontend
 # Install dependencies
 bun install
 
-# Start frontend
+# Start Next.js development server
 bun dev
 ```
 
-Open: http://localhost:3000
-
----
-
-## 🐳 Docker (Optional)
-
-```bash
-# From project root
-docker-compose up --build
-```
-
-Services:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-- Postgres: localhost:5432
+> **Web Application**: Access the web portal at [http://localhost:3000](http://localhost:3000).
 
 ---
 
 ## 🔑 Default Credentials
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@innov8.local | changeme |
+When running `seed.py`, the default administrator credentials are created from your `.env` configuration:
 
-⚠️ **Change these before production via the `.env` file!**
+| Role | Default Email | Default Password |
+|---|---|---|
+| **Super Admin** | `admin@innov8.in` *(or configured in `.env`)* | `admin@bbit` *(or configured in `.env`)* |
 
----
-
-## 📋 Feature Overview
-
-### Authentication
-- JWT access token (15 min) + refresh token (7 days)
-- Stored in **HttpOnly cookies** (not localStorage)
-- Automatic token rotation on refresh
-- Argon2 password hashing
-
-### Score Immutability (Multi-Layer)
-
-| Layer | Mechanism |
-|-------|-----------|
-| Database | `UNIQUE(judge_id, team_id, round)` + `CHECK` constraints |
-| API | No `PUT/PATCH/DELETE` endpoints for scores |
-| Service | Pre-submission duplicate check → `409 Conflict` |
-| Frontend | Read-only view after submission, no edit controls |
-
-### Scoring Criteria
-
-Each round (1 and 2) has 3 criteria, each scored 0–10:
-- **Q&A**
-- **Innovation & Originality**
-- **Execution & MVP**
-
-Maximum per round: **30 points**
-Maximum per judge: **60 points**
-
-### Score Aggregation
-
-Team scores are aggregated as:
-- **Round 1 Average** = mean of all judges' Round 1 totals
-- **Round 2 Average** = mean of all judges' Round 2 totals  
-- **Overall Average** = mean of all submitted scores across both rounds and all judges
+> [!WARNING]
+> Always update `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `JWT_SECRET_KEY` in `backend/.env` before deploying to production.
 
 ---
 
-## 📡 API Endpoints
+## 🔒 Score Immutability & Security
 
-| Method | Endpoint | Access |
-|--------|----------|--------|
-| POST | `/api/v1/auth/login` | Public |
-| POST | `/api/v1/auth/refresh` | Authenticated |
-| POST | `/api/v1/auth/logout` | Authenticated |
-| GET  | `/api/v1/auth/me` | Authenticated |
-| GET  | `/api/v1/teams` | Any authenticated |
-| GET  | `/api/v1/teams/{team_id}` | Any authenticated |
-| POST | `/api/v1/scores` | JUDGE only |
-| GET  | `/api/v1/scores/my` | JUDGE only |
-| GET  | `/api/v1/scores/team/{id}/status` | JUDGE only |
-| GET  | `/api/v1/scores/team/{id}/round/{n}` | JUDGE only |
-| GET  | `/api/v1/admin/dashboard` | SUPER_ADMIN only |
-| GET  | `/api/v1/admin/leaderboard` | SUPER_ADMIN only |
-| POST | `/api/v1/admin/teams` | SUPER_ADMIN only |
-| GET  | `/api/v1/admin/teams` | SUPER_ADMIN only |
-| GET  | `/api/v1/admin/teams/{id}` | SUPER_ADMIN only |
-| GET  | `/api/v1/admin/judges` | SUPER_ADMIN only |
-| POST | `/api/v1/admin/judges` | SUPER_ADMIN only |
-| PATCH | `/api/v1/admin/judges/{id}/status` | SUPER_ADMIN only |
-| POST | `/api/v1/admin/judges/{id}/reset-password` | SUPER_ADMIN only |
+Evalix ensures judging integrity through defense-in-depth:
 
-Interactive docs: http://localhost:8000/docs
+| Layer | Immutability & Security Mechanism |
+|---|---|
+| **Database Level** | `UNIQUE(judge_id, team_id, round)` prevents duplicate entries at the engine level. `CHECK` constraints validate score bounds (0–10). |
+| **API Level** | Strictly write-once (`POST /scores` only). No `PUT`, `PATCH`, or `DELETE` routes exist for scores. |
+| **Service Logic** | Pre-flight duplicate check rejects re-submissions with `409 Conflict`. Total scores are calculated server-side. |
+| **Client UI** | Dynamic lockouts immediately render submitted rounds read-only. |
+| **Authentication** | JWT tokens delivered over secure `HttpOnly, SameSite=Lax` cookies with automatic refresh token rotation. |
 
 ---
 
-## 🗄️ Database Schema
+## 📁 Repository Structure
 
-### `users`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | UUID PK | |
-| name | VARCHAR(255) | |
-| email | VARCHAR(255) | UNIQUE |
-| password_hash | VARCHAR(1024) | Argon2 |
-| role | ENUM | SUPER_ADMIN / JUDGE |
-| is_active | BOOLEAN | |
-| created_at | TIMESTAMPTZ | |
-
-### `teams`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | UUID PK | |
-| team_id | VARCHAR(50) | UNIQUE, e.g. INNOV8-001 |
-| team_name | VARCHAR(255) | |
-| leader_name | VARCHAR(255) | |
-| created_at / updated_at | TIMESTAMPTZ | |
-
-### `scores`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | UUID PK | |
-| judge_id | UUID FK | → users.id |
-| team_id | UUID FK | → teams.id |
-| round | INTEGER | CHECK: IN (1, 2) |
-| qa_score | INTEGER | CHECK: 0-10 |
-| innovation_score | INTEGER | CHECK: 0-10 |
-| execution_score | INTEGER | CHECK: 0-10 |
-| total_score | INTEGER | CHECK: = sum of above |
-| submitted_at | TIMESTAMPTZ | |
-
-**Key Constraint**: `UNIQUE(judge_id, team_id, round)` — enforces immutability at DB level
-
-### `refresh_tokens`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | UUID PK | |
-| user_id | UUID FK | CASCADE DELETE |
-| token_hash | VARCHAR(1024) | SHA-256 hash |
-| is_revoked | BOOLEAN | |
-| created_at / expires_at | TIMESTAMPTZ | |
-
----
-
-## 🧪 Running Tests
-
-```bash
-cd backend
-
-# Run all tests
-uv run pytest tests/ -v
-
-# With coverage
-uv run pytest tests/ --cov=app --cov-report=term-missing
+```text
+Evalix/
+├── backend/
+│   ├── app/
+│   │   ├── api/v1/         # Versioned REST endpoints (auth, admin, judges, scores, teams)
+│   │   ├── core/           # Security, Argon2 hashing, JWT, application config
+│   │   ├── models/         # SQLAlchemy 2.0 async ORM models
+│   │   ├── schemas/        # Pydantic validation & serialization schemas
+│   │   └── services/       # Business logic & immutability validation
+│   ├── migrations/         # Alembic database migration scripts
+│   ├── pyproject.toml      # Python dependencies and build metadata
+│   └── seed.py             # Initial database seeder
+├── frontend/
+│   ├── app/
+│   │   ├── (auth)/login/   # Authentication view
+│   │   ├── admin/          # Admin dashboard, team & judge management, leaderboard
+│   │   └── judge/          # Judge dashboard, QR scanner, scoring workflow
+│   ├── package.json        # Frontend dependencies & scripts
+│   └── tailwind.config.ts  # Tailwind CSS configuration
+├── LICENSE                 # MIT License
+└── README.md
 ```
 
-Test coverage includes:
-- Authentication (login, refresh, logout, inactive user)
-- Team CRUD and duplicate rejection
-- Score submission and immutability
-- Score validation (range checks)
-- No PUT/PATCH/DELETE endpoints for scores
-- RBAC (judge cannot access admin, admin cannot submit scores)
-- Judge isolation (two judges can score same team)
-- Admin operations (judge management, dashboard)
-
 ---
 
-## 🔒 Security Notes
+## 📄 License
 
-- Passwords hashed with **Argon2** (memory-hard)
-- JWT tokens stored in **HttpOnly, Secure, SameSite=Lax cookies**
-- **Refresh token rotation** — old tokens revoked on use
-- CORS configured to allow only specified origins
-- Role checks enforced server-side for every request
-- `judge_id` always derived from the authenticated JWT — never trusted from request body
-- Total scores computed server-side — frontend totals are ignored
-- Input validation at Pydantic schema level + DB constraint level
-
----
-
-## 📱 Frontend Routes
-
-| Route | Description | Access |
-|-------|-------------|--------|
-| `/login` | Login page | Public |
-| `/judge` | Judge dashboard | JUDGE |
-| `/judge/scan` | QR scanner + manual entry | JUDGE |
-| `/judge/team/[teamId]` | Team detail + round status | JUDGE |
-| `/judge/team/[teamId]/round/[round]` | Scoring form | JUDGE |
-| `/judge/history` | All submitted scores | JUDGE |
-| `/admin` | Admin dashboard | SUPER_ADMIN |
-| `/admin/teams` | Team management | SUPER_ADMIN |
-| `/admin/teams/[teamId]` | Team detail + all scores | SUPER_ADMIN |
-| `/admin/judges` | Judge management | SUPER_ADMIN |
-| `/admin/scores` | Final leaderboard | SUPER_ADMIN |
-
----
-
-## 🏁 Verified Workflow
-
-✅ Admin logs in → creates judges → registers teams  
-✅ Judge logs in → scans QR → team identified  
-✅ Judge selects Round 1 → enters scores → confirms → permanently submitted  
-✅ Judge revisits same team → Round 1 shows read-only submitted score  
-✅ Judge submits Round 1 again → **409 Conflict**  
-✅ Judge submits Round 2 → succeeds  
-✅ Admin views team → sees all judge scores + calculated totals  
-✅ Admin attempts score modification → **no edit controls exist**  
-✅ Judge accesses admin routes → **403 Forbidden**  
-✅ Admin tries to submit judge score → **403 Forbidden**
+This project is open-source and licensed under the [MIT License](LICENSE).
