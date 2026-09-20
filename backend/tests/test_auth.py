@@ -72,3 +72,40 @@ async def test_inactive_user_cannot_login(client: AsyncClient, db, judge_user: U
         json={"email": "judge@test.com", "password": "judgepass123"},
     )
     assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_bearer_token_authentication(client: AsyncClient, admin_user: User):
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@test.com", "password": "adminpass123"},
+    )
+    assert login_resp.status_code == 200
+    token = login_resp.json()["access_token"]
+    assert token is not None
+
+    # Request /me with Authorization: Bearer <token> and NO cookies (simulating iOS ITP)
+    me_resp = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert me_resp.status_code == 200
+    assert me_resp.json()["email"] == "admin@test.com"
+
+
+@pytest.mark.asyncio
+async def test_refresh_with_body(client: AsyncClient, admin_user: User):
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@test.com", "password": "adminpass123"},
+    )
+    refresh_token = login_resp.json()["refresh_token"]
+    assert refresh_token is not None
+
+    # Refresh using body without cookies
+    refresh_resp = await client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": refresh_token},
+    )
+    assert refresh_resp.status_code == 200
+    assert refresh_resp.json()["access_token"] is not None
