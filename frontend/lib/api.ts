@@ -1,13 +1,26 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { useAuthStore } from '@/lib/store';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // Send HttpOnly cookies automatically
+  withCredentials: true, // Send HttpOnly cookies automatically where supported
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Request interceptor — attach Bearer token (essential for iOS Safari / WebKit ITP)
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  if (typeof window !== 'undefined') {
+    const state = useAuthStore.getState();
+    const token = state.accessToken || state.user?.access_token;
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
 });
 
 // Track if we're already refreshing to avoid loops
@@ -47,11 +60,24 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post('/auth/refresh');
+        const state = useAuthStore.getState();
+        const refreshToken = state.refreshToken || state.user?.refresh_token;
+        const refreshResponse = await api.post('/auth/refresh', {
+          refresh_token: refreshToken,
+        });
+
+        const newAccessToken = refreshResponse.data?.access_token;
+        const newRefreshToken = refreshResponse.data?.refresh_token;
+        if (newAccessToken) {
+          useAuthStore.getState().setTokens(newAccessToken, newRefreshToken || refreshToken || null);
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        }
+
         processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError as AxiosError);
+        useAuthStore.getState().logout();
         // Redirect to login on session expiry
         if (typeof window !== 'undefined') {
           window.location.replace('/login');
@@ -72,9 +98,16 @@ export default api;
 export const authApi = {
   login: (email: string, password: string) =>
     api.post('/auth/login', { email, password }),
-  logout: () => api.post('/auth/logout'),
+  logout: () => {
+    const state = useAuthStore.getState();
+    const refreshToken = state.refreshToken || state.user?.refresh_token;
+    return api.post('/auth/logout', { refresh_token: refreshToken });
+  },
   me: () => api.get('/auth/me'),
-  refresh: () => api.post('/auth/refresh'),
+  refresh: (refreshToken?: string) => {
+    const token = refreshToken || useAuthStore.getState().refreshToken || useAuthStore.getState().user?.refresh_token;
+    return api.post('/auth/refresh', { refresh_token: token });
+  },
 };
 
 // ---- Teams ----

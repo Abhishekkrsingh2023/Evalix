@@ -1,6 +1,6 @@
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
-from uuid import UUID
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -51,6 +51,7 @@ def create_refresh_token(subject: str) -> str:
         "iat": now,
         "exp": expire,
         "type": "refresh",
+        "jti": str(uuid.uuid4()),
     }
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 

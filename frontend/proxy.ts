@@ -16,8 +16,19 @@ export function proxy(request: NextRequest) {
   const accessToken = request.cookies.get('access_token')?.value;
 
   // If user is on /login but already has a valid cookie (e.g. same-origin
-  // deployment), redirect them away from the login page.
+  // deployment), redirect them away from the login page based on role.
   if (pathname.startsWith('/login') && accessToken) {
+    try {
+      const parts = accessToken.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+        if (payload.role === 'SUPER_ADMIN') {
+          return NextResponse.redirect(new URL('/admin', request.url));
+        }
+      }
+    } catch {
+      // Fallback
+    }
     return NextResponse.redirect(new URL('/judge', request.url));
   }
 

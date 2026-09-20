@@ -63,8 +63,8 @@ async def login(
     response: Response,
     email: str,
     password: str,
-) -> User:
-    """Authenticate user, issue JWT tokens as HttpOnly cookies."""
+) -> Tuple[User, str, str]:
+    """Authenticate user, issue JWT tokens as HttpOnly cookies and return tokens."""
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
@@ -94,14 +94,14 @@ async def login(
     await db.commit()
 
     _set_auth_cookies(response, access_token, refresh_token)
-    return user
+    return user, access_token, refresh_token
 
 
 async def refresh_tokens(
     db: AsyncSession,
     response: Response,
     refresh_token: str,
-) -> User:
+) -> Tuple[User, str, str]:
     """Validate refresh token, issue new access + refresh tokens (rotation)."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -151,7 +151,7 @@ async def refresh_tokens(
     await db.commit()
 
     _set_auth_cookies(response, new_access_token, new_refresh_token)
-    return user
+    return user, new_access_token, new_refresh_token
 
 
 async def logout(
