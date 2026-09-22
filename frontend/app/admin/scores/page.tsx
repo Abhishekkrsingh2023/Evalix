@@ -51,6 +51,7 @@ export default function AdminScoresPage() {
   // Fetch only when live is enabled or tab changes while live
   useEffect(() => {
     if (isLive) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchLeaderboard(activeTab);
     }
   }, [isLive, activeTab, fetchLeaderboard]);
