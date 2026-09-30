@@ -119,13 +119,7 @@ export const teamsApi = {
 
 // ---- Scores (Judge) ----
 export const scoresApi = {
-  submit: (payload: {
-    team_id: string;
-    round: 1 | 2;
-    qa_score: number;
-    innovation_score: number;
-    execution_score: number;
-  }) => api.post('/scores', payload),
+  submit: (payload: Record<string, unknown>) => api.post('/scores', payload),
   my: () => api.get('/scores/my'),
   teamStatus: (teamId: string) => api.get(`/scores/team/${teamId}/status`),
   teamRound: (teamId: string, round: 1 | 2) =>

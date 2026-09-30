@@ -71,9 +71,21 @@ class LeaderboardResponse(BaseModel):
 # --- Team detail with judge scores ---
 class JudgeRoundScore(BaseModel):
     round: int
+
+    # Round 1 criteria
+    innovation_creativity_score: int
+    technical_implementation_score: int
+    ui_ux_score: int
+    impact_scope_score: int
+    research_development_score: int
+
+    # Round 2 criteria
+    project_completeness_score: int
+    deployment_github_score: int
     qa_score: int
-    innovation_score: int
-    execution_score: int
+    testing_prototype_score: int
+    documentation_score: int
+
     total_score: int
     submitted_at: datetime
 

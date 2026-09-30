@@ -340,7 +340,7 @@ export default function AdminScoresPage() {
                                   : '—'}
                               </span>
                               <span className="text-slate-500 text-[10px] sm:text-xs ml-1">
-                                {activeTab === 'final' ? 'avg' : '/30'}
+                                {activeTab === 'final' ? 'avg' : '/50'}
                               </span>
                             </div>
                           </div>
@@ -387,13 +387,13 @@ export default function AdminScoresPage() {
                           <div className={activeTab === '1' ? 'font-bold text-violet-300' : ''}>
                             <span className="text-slate-500 block text-[10px] uppercase">R1 (Day 1)</span>
                             <span className="font-medium text-xs">
-                              {entry.round_1_avg !== null ? `${entry.round_1_avg.toFixed(1)}/30` : '—'}
+                              {entry.round_1_avg !== null ? `${entry.round_1_avg.toFixed(1)}/50` : '—'}
                             </span>
                           </div>
                           <div className={activeTab === '2' ? 'font-bold text-violet-300' : ''}>
                             <span className="text-slate-500 block text-[10px] uppercase">R2 (Day 2)</span>
                             <span className="font-medium text-xs">
-                              {entry.round_2_avg !== null ? `${entry.round_2_avg.toFixed(1)}/30` : '—'}
+                              {entry.round_2_avg !== null ? `${entry.round_2_avg.toFixed(1)}/50` : '—'}
                             </span>
                           </div>
                           <div className={activeTab === 'final' ? 'font-bold text-amber-300' : ''}>
@@ -490,7 +490,7 @@ export default function AdminScoresPage() {
                                 : 'text-slate-300'
                             }`}
                           >
-                            {entry.round_1_avg !== null ? `${entry.round_1_avg.toFixed(1)}/30` : '—'}
+                            {entry.round_1_avg !== null ? `${entry.round_1_avg.toFixed(1)}/50` : '—'}
                           </td>
                           <td
                             className={`px-4 py-3.5 font-medium ${
@@ -499,7 +499,7 @@ export default function AdminScoresPage() {
                                 : 'text-slate-300'
                             }`}
                           >
-                            {entry.round_2_avg !== null ? `${entry.round_2_avg.toFixed(1)}/30` : '—'}
+                            {entry.round_2_avg !== null ? `${entry.round_2_avg.toFixed(1)}/50` : '—'}
                           </td>
                           <td
                             className={`px-4 py-3.5 ${
@@ -546,11 +546,11 @@ export default function AdminScoresPage() {
               Scoring Methodology
             </h3>
             <p className="text-slate-400 text-xs leading-relaxed">
-              <strong>Round 1 (Day 1):</strong> Average of all judge totals submitted during Round 1 (out of 30).
+              <strong>Round 1 (Day 1):</strong> 5 criteria — Innovation &amp; Creativity, Technical Implementation, UI &amp; UX, Impact &amp; Scope, Research &amp; Development. Max 50 pts. Average of all judge totals.
               <br />
-              <strong>Round 2 (Day 2):</strong> Average of all judge totals submitted during Round 2 (out of 30). Judges may only evaluate Round 2 after completing Round 1.
+              <strong>Round 2 (Day 2):</strong> 5 criteria — Project Completeness, Deployment &amp; GitHub, Q&amp;A, Testing &amp; Prototype, Documentation. Max 50 pts. Judges must complete Round 1 before Round 2.
               <br />
-              <strong>Final Score:</strong> Overall average across all submitted rounds and judges. All scores are permanent and tamper-proof.
+              <strong>Final Score:</strong> Overall average across all submitted rounds and judges. All scores are <strong>permanently immutable</strong> — read-only for everyone.
             </p>
           </Card>
         </div>

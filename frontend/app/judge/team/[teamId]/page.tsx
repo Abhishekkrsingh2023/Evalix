@@ -4,11 +4,31 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { teamsApi, scoresApi } from '@/lib/api';
-import { Team, TeamScoreStatus } from '@/types';
+import { Team, TeamScoreStatus, ScoreResponse } from '@/types';
 import { Card, Badge, Button, Skeleton, ScoreBar } from '@/components/ui';
 import { formatDate, getApiError } from '@/lib/utils';
 import { Users, ChevronRight, Lock, CheckCircle2, PlayCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+
+// Round 1 criteria labels for read-only display
+const ROUND_1_CRITERIA: { key: keyof ScoreResponse; label: string }[] = [
+  { key: 'innovation_creativity_score', label: 'Innovation & Creativity' },
+  { key: 'technical_implementation_score', label: 'Technical Implementation' },
+  { key: 'ui_ux_score', label: 'UI & UX' },
+  { key: 'impact_scope_score', label: 'Impact & Scope' },
+  { key: 'research_development_score', label: 'Research & Development' },
+];
+
+// Round 2 criteria labels for read-only display
+const ROUND_2_CRITERIA: { key: keyof ScoreResponse; label: string }[] = [
+  { key: 'project_completeness_score', label: 'Project Completeness' },
+  { key: 'deployment_github_score', label: 'Deployment & GitHub Source Code' },
+  { key: 'qa_score', label: 'Q&A' },
+  { key: 'testing_prototype_score', label: 'Testing & Working Prototype' },
+  { key: 'documentation_score', label: 'Documentation' },
+];
+
+const MAX_SCORE = 50; // 5 criteria × 10
 
 export default function JudgeTeamPage() {
   const { teamId } = useParams<{ teamId: string }>();
@@ -91,6 +111,7 @@ export default function JudgeTeamPage() {
         const round = roundStatus.round as 1 | 2;
         const roundTitle = round === 1 ? 'Round 1 (Day 1)' : 'Round 2 (Day 2)';
         const isLocked = round === 2 && !status.round_1.submitted;
+        const criteria = round === 1 ? ROUND_1_CRITERIA : ROUND_2_CRITERIA;
 
         return (
           <Card
@@ -131,30 +152,25 @@ export default function JudgeTeamPage() {
 
             {isSubmitted && score ? (
               <div className="space-y-3">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-slate-400">Q&amp;A</span>
-                    <span className="text-slate-300">{score.qa_score} / 10</span>
-                  </div>
-                  <ScoreBar value={score.qa_score} />
-
-                  <div className="flex items-center justify-between text-sm mb-1 mt-3">
-                    <span className="text-slate-400">Innovation &amp; Originality</span>
-                    <span className="text-slate-300">{score.innovation_score} / 10</span>
-                  </div>
-                  <ScoreBar value={score.innovation_score} />
-
-                  <div className="flex items-center justify-between text-sm mb-1 mt-3">
-                    <span className="text-slate-400">Execution &amp; MVP</span>
-                    <span className="text-slate-300">{score.execution_score} / 10</span>
-                  </div>
-                  <ScoreBar value={score.execution_score} />
+                <div className="space-y-3">
+                  {criteria.map(({ key, label }) => {
+                    const val = score[key] as number;
+                    return (
+                      <div key={key}>
+                        <div className="flex items-center justify-between text-sm mb-1">
+                          <span className="text-slate-400">{label}</span>
+                          <span className="text-slate-300">{val} / 10</span>
+                        </div>
+                        <ScoreBar value={val} />
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-slate-700/50 mt-4">
                   <span className="font-semibold text-slate-300">{roundTitle} Total</span>
                   <span className="text-2xl font-bold text-violet-400">
-                    {score.total_score}<span className="text-slate-500 text-base font-normal">/30</span>
+                    {score.total_score}<span className="text-slate-500 text-base font-normal">/{MAX_SCORE}</span>
                   </span>
                 </div>
 

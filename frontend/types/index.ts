@@ -38,9 +38,21 @@ export interface ScoreResponse {
   team_identifier: string;
   team_name: string;
   round: 1 | 2;
+
+  // Round 1 criteria
+  innovation_creativity_score: number;
+  technical_implementation_score: number;
+  ui_ux_score: number;
+  impact_scope_score: number;
+  research_development_score: number;
+
+  // Round 2 criteria
+  project_completeness_score: number;
+  deployment_github_score: number;
   qa_score: number;
-  innovation_score: number;
-  execution_score: number;
+  testing_prototype_score: number;
+  documentation_score: number;
+
   total_score: number;
   submitted_at: string;
 }
@@ -59,13 +71,29 @@ export interface TeamScoreStatus {
   round_2: RoundScoreStatus;
 }
 
-export interface ScoreSubmitPayload {
+// Round 1 submit payload
+export interface Round1ScoreSubmitPayload {
   team_id: string;
-  round: 1 | 2;
-  qa_score: number;
-  innovation_score: number;
-  execution_score: number;
+  round: 1;
+  innovation_creativity_score: number;
+  technical_implementation_score: number;
+  ui_ux_score: number;
+  impact_scope_score: number;
+  research_development_score: number;
 }
+
+// Round 2 submit payload
+export interface Round2ScoreSubmitPayload {
+  team_id: string;
+  round: 2;
+  project_completeness_score: number;
+  deployment_github_score: number;
+  qa_score: number;
+  testing_prototype_score: number;
+  documentation_score: number;
+}
+
+export type ScoreSubmitPayload = Round1ScoreSubmitPayload | Round2ScoreSubmitPayload;
 
 // Admin schemas
 export interface JudgeStats {
@@ -105,9 +133,21 @@ export interface LeaderboardResponse {
 
 export interface JudgeRoundScore {
   round: 1 | 2;
+
+  // Round 1 criteria
+  innovation_creativity_score: number;
+  technical_implementation_score: number;
+  ui_ux_score: number;
+  impact_scope_score: number;
+  research_development_score: number;
+
+  // Round 2 criteria
+  project_completeness_score: number;
+  deployment_github_score: number;
   qa_score: number;
-  innovation_score: number;
-  execution_score: number;
+  testing_prototype_score: number;
+  documentation_score: number;
+
   total_score: number;
   submitted_at: string;
 }
@@ -152,4 +192,3 @@ export interface ApiError {
   detail: string | Array<{ loc?: (string | number)[]; msg?: string; type?: string }> | Record<string, unknown>;
   status?: number;
 }
-

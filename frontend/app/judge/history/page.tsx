@@ -8,6 +8,25 @@ import { formatDate } from '@/lib/utils';
 import { History, Lock, Users } from 'lucide-react';
 import Link from 'next/link';
 
+// Round-specific criteria for compact history display
+const ROUND_1_CRITERIA: { key: keyof ScoreResponse; label: string }[] = [
+  { key: 'innovation_creativity_score', label: 'Innovation & Creativity' },
+  { key: 'technical_implementation_score', label: 'Technical Implementation' },
+  { key: 'ui_ux_score', label: 'UI & UX' },
+  { key: 'impact_scope_score', label: 'Impact & Scope' },
+  { key: 'research_development_score', label: 'Research & Development' },
+];
+
+const ROUND_2_CRITERIA: { key: keyof ScoreResponse; label: string }[] = [
+  { key: 'project_completeness_score', label: 'Project Completeness' },
+  { key: 'deployment_github_score', label: 'Deployment & GitHub' },
+  { key: 'qa_score', label: 'Q&A' },
+  { key: 'testing_prototype_score', label: 'Testing & Prototype' },
+  { key: 'documentation_score', label: 'Documentation' },
+];
+
+const MAX_ROUND_SCORE = 50;
+
 export default function JudgeHistoryPage() {
   const [scores, setScores] = useState<ScoreResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +95,8 @@ export default function JudgeHistoryPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[r1, r2].map((score, idx) => {
                       const roundLabel = idx === 0 ? 'Round 1 (Day 1)' : 'Round 2 (Day 2)';
+                      const criteria = idx === 0 ? ROUND_1_CRITERIA : ROUND_2_CRITERIA;
+
                       if (!score) {
                         return (
                           <div key={idx} className="p-3 bg-slate-800/30 rounded-xl border border-slate-700/50">
@@ -88,21 +109,20 @@ export default function JudgeHistoryPage() {
                         <div key={score.id} className="p-3 bg-slate-800/50 rounded-xl border border-violet-500/20 space-y-2">
                           <div className="flex items-center justify-between">
                             <Badge variant="submitted">{roundLabel}</Badge>
-                            <span className="text-violet-400 font-bold">{score.total_score}/30</span>
+                            <span className="text-violet-400 font-bold">{score.total_score}/{MAX_ROUND_SCORE}</span>
                           </div>
                           <div className="space-y-1.5 text-xs">
-                            <div className="flex justify-between text-slate-400">
-                              <span>Q&A</span><span>{score.qa_score}/10</span>
-                            </div>
-                            <ScoreBar value={score.qa_score} />
-                            <div className="flex justify-between text-slate-400 mt-1">
-                              <span>Innovation</span><span>{score.innovation_score}/10</span>
-                            </div>
-                            <ScoreBar value={score.innovation_score} />
-                            <div className="flex justify-between text-slate-400 mt-1">
-                              <span>Execution</span><span>{score.execution_score}/10</span>
-                            </div>
-                            <ScoreBar value={score.execution_score} />
+                            {criteria.map(({ key, label }) => {
+                              const val = score[key] as number;
+                              return (
+                                <div key={key}>
+                                  <div className="flex justify-between text-slate-400">
+                                    <span>{label}</span><span>{val}/10</span>
+                                  </div>
+                                  <ScoreBar value={val} />
+                                </div>
+                              );
+                            })}
                           </div>
                           <p className="text-slate-600 text-xs flex items-center gap-1 pt-1">
                             <Lock className="w-3 h-3" />

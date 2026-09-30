@@ -3,12 +3,32 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { adminApi } from '@/lib/api';
-import { TeamDetailWithScores } from '@/types';
+import { TeamDetailWithScores, JudgeRoundScore } from '@/types';
 import { Card, Badge, Skeleton, ScoreBar, Button } from '@/components/ui';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Lock, Users, Award, QrCode } from 'lucide-react';
 import { QrModal } from '@/components/QrModal';
+
+// Round 1 criteria labels (read-only)
+const ROUND_1_CRITERIA: { key: keyof JudgeRoundScore; label: string }[] = [
+  { key: 'innovation_creativity_score', label: 'Innovation & Creativity' },
+  { key: 'technical_implementation_score', label: 'Technical Implementation' },
+  { key: 'ui_ux_score', label: 'UI & UX' },
+  { key: 'impact_scope_score', label: 'Impact & Scope' },
+  { key: 'research_development_score', label: 'Research & Development' },
+];
+
+// Round 2 criteria labels (read-only)
+const ROUND_2_CRITERIA: { key: keyof JudgeRoundScore; label: string }[] = [
+  { key: 'project_completeness_score', label: 'Project Completeness' },
+  { key: 'deployment_github_score', label: 'Deployment & GitHub Source Code' },
+  { key: 'qa_score', label: 'Q&A' },
+  { key: 'testing_prototype_score', label: 'Testing & Working Prototype' },
+  { key: 'documentation_score', label: 'Documentation' },
+];
+
+const MAX_ROUND_SCORE = 50; // 5 criteria × 10
 
 export default function AdminTeamDetailPage() {
   const { teamId } = useParams<{ teamId: string }>();
@@ -82,9 +102,9 @@ export default function AdminTeamDetailPage() {
         {/* Aggregate stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-5 border-t border-slate-700/50">
           {[
-            { label: 'Round 1 Avg', value: round_1_avg !== null ? `${round_1_avg}/30` : '—' },
-            { label: 'Round 2 Avg', value: round_2_avg !== null ? `${round_2_avg}/30` : '—' },
-            { label: 'Overall Avg', value: overall_avg !== null ? `${overall_avg}/30` : '—' },
+            { label: 'Round 1 Avg', value: round_1_avg !== null ? `${round_1_avg}/${MAX_ROUND_SCORE}` : '—' },
+            { label: 'Round 2 Avg', value: round_2_avg !== null ? `${round_2_avg}/${MAX_ROUND_SCORE}` : '—' },
+            { label: 'Overall Avg', value: overall_avg !== null ? `${overall_avg}/${MAX_ROUND_SCORE}` : '—' },
             { label: 'Total Submissions', value: total_submissions },
           ].map(({ label, value }) => (
             <div key={label} className="text-center p-3 bg-slate-800/50 rounded-xl">
@@ -125,17 +145,23 @@ export default function AdminTeamDetailPage() {
                 {jd.judge_total !== null && (
                   <div className="text-right">
                     <p className="text-xs text-slate-500">Judge Total</p>
-                    <p className="text-2xl font-bold text-violet-400">{jd.judge_total}<span className="text-slate-500 text-sm font-normal">/60</span></p>
+                    <p className="text-2xl font-bold text-violet-400">
+                      {jd.judge_total}
+                      <span className="text-slate-500 text-sm font-normal">/{MAX_ROUND_SCORE * 2}</span>
+                    </p>
                   </div>
                 )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[jd.round_1, jd.round_2].map((score, idx) => {
+                  const roundNumber = (idx + 1) as 1 | 2;
+                  const criteria = roundNumber === 1 ? ROUND_1_CRITERIA : ROUND_2_CRITERIA;
+
                   if (!score) {
                     return (
                       <div key={idx} className="p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
-                        <p className="text-slate-500 text-sm font-medium">Round {idx + 1}</p>
+                        <p className="text-slate-500 text-sm font-medium">Round {roundNumber}</p>
                         <p className="text-slate-600 text-xs mt-1">Not submitted</p>
                       </div>
                     );
@@ -144,21 +170,20 @@ export default function AdminTeamDetailPage() {
                     <div key={score.round} className="p-4 bg-slate-800/50 rounded-xl border border-violet-500/20 space-y-3">
                       <div className="flex items-center justify-between">
                         <Badge variant="submitted">Round {score.round}</Badge>
-                        <span className="text-violet-400 font-bold">{score.total_score}/30</span>
+                        <span className="text-violet-400 font-bold">{score.total_score}/{MAX_ROUND_SCORE}</span>
                       </div>
                       <div className="space-y-2">
-                        {[
-                          { label: 'Q&A', val: score.qa_score },
-                          { label: 'Innovation', val: score.innovation_score },
-                          { label: 'Execution', val: score.execution_score },
-                        ].map(({ label, val }) => (
-                          <div key={label}>
-                            <div className="flex justify-between text-xs text-slate-400 mb-1">
-                              <span>{label}</span><span>{val}/10</span>
+                        {criteria.map(({ key, label }) => {
+                          const val = score[key] as number;
+                          return (
+                            <div key={key}>
+                              <div className="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>{label}</span><span>{val}/10</span>
+                              </div>
+                              <ScoreBar value={val} />
                             </div>
-                            <ScoreBar value={val} />
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                       <p className="text-slate-600 text-xs flex items-center gap-1">
                         <Lock className="w-3 h-3" />

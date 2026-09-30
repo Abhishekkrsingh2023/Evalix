@@ -27,9 +27,18 @@ def _build_score_response(score: Score) -> ScoreResponse:
         team_identifier=score.team.team_id,
         team_name=score.team.team_name,
         round=score.round,
+        # Round 1 criteria
+        innovation_creativity_score=score.innovation_creativity_score,
+        technical_implementation_score=score.technical_implementation_score,
+        ui_ux_score=score.ui_ux_score,
+        impact_scope_score=score.impact_scope_score,
+        research_development_score=score.research_development_score,
+        # Round 2 criteria
+        project_completeness_score=score.project_completeness_score,
+        deployment_github_score=score.deployment_github_score,
         qa_score=score.qa_score,
-        innovation_score=score.innovation_score,
-        execution_score=score.execution_score,
+        testing_prototype_score=score.testing_prototype_score,
+        documentation_score=score.documentation_score,
         total_score=score.total_score,
         submitted_at=score.submitted_at,
     )
@@ -42,7 +51,7 @@ async def submit_score(
 ) -> ScoreResponse:
     """
     Submit a score for a team/round.
-    
+
     Immutability enforcement:
     1. Service-layer duplicate check → 409 before DB hit
     2. DB UNIQUE(judge_id, team_id, round) constraint as final guard
@@ -81,15 +90,39 @@ async def submit_score(
             )
 
     # Compute total server-side (never trust frontend)
-    total = data.qa_score + data.innovation_score + data.execution_score
+    if data.round == 1:
+        total = (
+            data.innovation_creativity_score
+            + data.technical_implementation_score
+            + data.ui_ux_score
+            + data.impact_scope_score
+            + data.research_development_score
+        )
+    else:
+        total = (
+            data.project_completeness_score
+            + data.deployment_github_score
+            + data.qa_score
+            + data.testing_prototype_score
+            + data.documentation_score
+        )
 
     score = Score(
         judge_id=judge.id,
         team_id=team.id,
         round=data.round,
-        qa_score=data.qa_score,
-        innovation_score=data.innovation_score,
-        execution_score=data.execution_score,
+        # Round 1 criteria (0 for round 2)
+        innovation_creativity_score=data.innovation_creativity_score if data.round == 1 else 0,
+        technical_implementation_score=data.technical_implementation_score if data.round == 1 else 0,
+        ui_ux_score=data.ui_ux_score if data.round == 1 else 0,
+        impact_scope_score=data.impact_scope_score if data.round == 1 else 0,
+        research_development_score=data.research_development_score if data.round == 1 else 0,
+        # Round 2 criteria (0 for round 1)
+        project_completeness_score=data.project_completeness_score if data.round == 2 else 0,
+        deployment_github_score=data.deployment_github_score if data.round == 2 else 0,
+        qa_score=data.qa_score if data.round == 2 else 0,
+        testing_prototype_score=data.testing_prototype_score if data.round == 2 else 0,
+        documentation_score=data.documentation_score if data.round == 2 else 0,
         total_score=total,
     )
     db.add(score)
@@ -209,9 +242,18 @@ async def get_team_detail_with_scores(
             )
         round_score = JudgeRoundScore(
             round=score.round,
+            # Round 1 criteria
+            innovation_creativity_score=score.innovation_creativity_score,
+            technical_implementation_score=score.technical_implementation_score,
+            ui_ux_score=score.ui_ux_score,
+            impact_scope_score=score.impact_scope_score,
+            research_development_score=score.research_development_score,
+            # Round 2 criteria
+            project_completeness_score=score.project_completeness_score,
+            deployment_github_score=score.deployment_github_score,
             qa_score=score.qa_score,
-            innovation_score=score.innovation_score,
-            execution_score=score.execution_score,
+            testing_prototype_score=score.testing_prototype_score,
+            documentation_score=score.documentation_score,
             total_score=score.total_score,
             submitted_at=score.submitted_at,
         )
