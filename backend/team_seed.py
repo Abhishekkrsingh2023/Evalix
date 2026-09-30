@@ -7,7 +7,9 @@ Usage:
     # or
     python team_seed.py [path_to_csv]
 
-Defaults to 'INNOV8_3.0_Teams_Registrations_2026-09-22.csv' in the backend directory.
+Defaults to 'teams.csv' in the backend directory.
+The CSV must have columns: Registration ID, Team Name, Leader Name.
+'Registration ID' is stored as the team's team_id and encoded in the QR code.
 Seeds directly to the database without requiring admin authentication.
 """
 import asyncio
@@ -31,20 +33,21 @@ def read_teams_from_csv(file_path: Path) -> list[dict[str, str]]:
     with open(file_path, mode="r", encoding="utf-8-sig") as csv_file:
         reader = csv.DictReader(csv_file)
 
-        # Validate expected headers
-        required_fields = ["Slot ID", "Team Name", "Leader Name"]
+        # Validate expected headers — Registration ID is the QR-encoded team identifier
+        required_fields = ["Registration ID", "Team Name", "Leader Name"]
         if not reader.fieldnames or not all(field in reader.fieldnames for field in required_fields):
             raise ValueError(
                 f"CSV must contain the following columns: {required_fields}. Found: {reader.fieldnames}"
             )
 
         for row_num, row in enumerate(reader, start=2):
-            team_id = (row.get("Slot ID") or "").strip().upper()
+            # Registration ID is used as team_id (encoded in QR code)
+            team_id = (row.get("Registration ID") or "").strip().upper()
             team_name = (row.get("Team Name") or "").strip()
             leader_name = (row.get("Leader Name") or "").strip()
 
             if not team_id:
-                print(f"⚠  Row {row_num}: Missing 'Slot ID', skipping.")
+                print(f"⚠  Row {row_num}: Missing 'Registration ID', skipping.")
                 continue
 
             if not team_name:
